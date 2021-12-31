@@ -1,3 +1,3 @@
 # CogSciKit
 
-A description of this package.
+A toolkit used to create educational apps for Cognitive Science.
