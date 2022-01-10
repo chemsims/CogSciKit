@@ -40,7 +40,7 @@ public struct TextLinesView: View {
         fontSize: CGFloat,
         weight: Font.Weight = .regular,
         color: Color = .black,
-        emphasisColor: Color = Color(red: 220 / 255, green: 84 / 255, blue: 59 / 255)
+        emphasisColor: Color = CorePalette.orangeAccent
     ) {
         self.init(
             lines: lines,
