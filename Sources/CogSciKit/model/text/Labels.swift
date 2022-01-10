@@ -1,5 +1,5 @@
 //
-// Reactions App
+// CogSciKit
 //
 
 import Foundation
