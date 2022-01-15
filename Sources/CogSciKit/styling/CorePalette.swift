@@ -9,4 +9,6 @@ public struct CorePalette {
     
     public static let orangeAccent = Color("orangeAccent", bundle: .module)
     public static let speechBubble = Color("speechBubble", bundle: .module)
+    
+    static let inactiveSpeechBubbleButton = Color("inactiveSpeechBubble", bundle: .module)
 }
