@@ -15,6 +15,11 @@ extension Equation {
     public func within(min: CGFloat, max: CGFloat) -> Equation {
         BoundEquation(underlying: self, lowerBound: min, upperBound: max)
     }
+    
+    /// Returns a new equation which always enforces that it's input is within `min` and `max` inclusive.
+    public func inputWithin(min: CGFloat, max: CGFloat) -> Equation {
+        BoundInputEquation(underlying: self, lowerBound: min, upperBound: max)
+    }
 
     public func upTo(_ max: CGFloat) -> Equation {
         BoundEquation(underlying: self, lowerBound: nil, upperBound: max)
