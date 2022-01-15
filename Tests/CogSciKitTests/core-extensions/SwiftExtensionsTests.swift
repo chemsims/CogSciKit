@@ -5,7 +5,7 @@
 import XCTest
 @testable import CogSciKit
 
-class CoreExtensionTests: XCTestCase {
+class SwiftExtensionTests: XCTestCase {
     
     func testValueWithinTwoLimits() {
         XCTAssertEqual(5.within(min: 0, max: 6), 5)
