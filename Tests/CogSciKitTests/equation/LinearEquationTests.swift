@@ -52,4 +52,13 @@ class LinearEquationTests: XCTestCase {
         XCTAssertNil(equation1.intersectionWith(other: equation2))
         XCTAssertNil(equation2.intersectionWith(other: equation1))
     }
+    
+    func testCreatingAFractionedLinearEquation() {
+        let equation = LinearEquation.fractioned(valueAtMin: -2, valueAtMax: 2)
+        
+        XCTAssertEqual(equation.getValue(at: -1), -2)
+        XCTAssertEqual(equation.getValue(at: 0), -2)
+        XCTAssertEqual(equation.getValue(at: 0.5), 0)
+        XCTAssertEqual(equation.getValue(at: 1), 2)
+    }
 }

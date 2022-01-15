@@ -21,6 +21,17 @@ public struct LinearEquation: Equation {
         let m = denom == 0 ? 0 : (y2 - y1) / denom
         self.init(m: m, x1: x1, y1: y1)
     }
+    
+    /// Returns a `LinearEquation` which varies with some fractional input - i.e., an input between 0 and 1.
+    /// All inputs to the equation are constrained so that they lie between 0 and 1.
+    ///
+    /// - Parameters:
+    ///   - valueAtMin: The value returned for inputs of  0 or less
+    ///   - valueAtMax: The value returned for inputs of 1 or more
+    public static func fractioned(valueAtMin: CGFloat, valueAtMax: CGFloat) -> Equation {
+        LinearEquation(x1: 0, y1: valueAtMin, x2: 1, y2: valueAtMax)
+            .inputWithin(min: 0, max: 1)
+    }
 
     public func getValue(at input: CGFloat) -> CGFloat {
         (m * input) + c
