@@ -1,5 +1,5 @@
 //
-//  File.swift
+// CogSciKit
 //  
 
 import CoreGraphics

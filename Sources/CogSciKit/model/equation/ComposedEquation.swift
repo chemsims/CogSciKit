@@ -1,5 +1,5 @@
 //
-//  CogSciKit
+// CogSciKit
 //  
 
 import CoreGraphics
