@@ -5,6 +5,19 @@
 import CoreGraphics
 import SwiftUI
 
+extension CGFloat {
+    public func str(decimals: Int) -> String {
+        String(format: "%.\(decimals)f", self)
+    }
+
+    public func rounded(decimals: Int) -> CGFloat {
+        let power = pow(10, CGFloat(decimals))
+        let multiplied = self * power
+        let rounded = multiplied.rounded()
+        return rounded / power
+    }
+}
+
 extension CGPoint {
     public func offset(dx: CGFloat, dy: CGFloat) -> CGPoint {
         CGPoint(x: self.x + dx, y: self.y + dy)
