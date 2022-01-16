@@ -2,7 +2,6 @@
 // CogSciKit
 //
 
-
 import SwiftUI
 
 struct PillShape: InsettableShape {
