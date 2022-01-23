@@ -66,16 +66,21 @@ public struct ChartLine: Shape {
                 didStart = true
             }
         }
+        
+        // We draw a small part of the line just before and after the discontinuity (if there is one)
+        let discontinuityDelta = dx / 100
 
         if let dc = discontinuity {
             for x in strideLhs(dx: dx, discontinuityX: dc) {
                 let y = equation.getValue(at: x)
                 addLine(x: x, y: y)
             }
-            addLine(x: dc - (dx / 100), y: equation.getValue(at: dc - (dx / 100)))
+            let preDc = dc - discontinuityDelta
+            addLine(x: preDc, y: equation.getValue(at: preDc))
+            addLine(x: dc, y: equation.getValue(at: dc))
         }
 
-        for x in strideRhs(dx: dx) {
+        for x in strideRhs(dx: dx, discontinuityDelta: discontinuityDelta) {
             let y = equation.getValue(at: x)
             addLine(x: x, y: y)
         }
@@ -88,9 +93,10 @@ public struct ChartLine: Shape {
         stride(from: startX + offset, to: discontinuityX, by: dx)
     }
 
-    private func strideRhs(dx: CGFloat) -> StrideTo<CGFloat> {
+    private func strideRhs(dx: CGFloat, discontinuityDelta: CGFloat) -> StrideTo<CGFloat> {
         if let dc = discontinuity {
-            return stride(from: dc, to: endX, by: dx)
+            let postDc = dc + discontinuityDelta
+            return stride(from: postDc, to: endX, by: dx)
         } else {
             return stride(from: startX + offset, to: endX, by: dx)
         }
@@ -112,7 +118,9 @@ struct ChartLine_Previews: PreviewProvider {
     }
 
     struct ViewStateWrapper: View {
-        @State var t2: CGFloat = 34
+        @State var t2: CGFloat = 0
+        
+        let discontinuity: CGFloat = 5
 
         var body: some View {
             VStack {
@@ -123,7 +131,7 @@ struct ChartLine_Previews: PreviewProvider {
                         xAxis: xAxis,
                         startX: 0,
                         endX: t2,
-                        discontinuity: 34
+                        discontinuity: discontinuity
                     ).stroke(lineWidth: 2)
 
                     ChartIndicatorHead(
@@ -157,7 +165,7 @@ struct ChartLine_Previews: PreviewProvider {
                 minValuePosition: 240,
                 maxValuePosition: 10,
                 minValue: 0,
-                maxValue: 50)
+                maxValue: 10)
         }
 
         private var xAxis: LinearAxis<CGFloat> {
@@ -165,18 +173,17 @@ struct ChartLine_Previews: PreviewProvider {
                 minValuePosition: 10,
                 maxValuePosition: 250 - 10,
                 minValue: 0,
-                maxValue: 50
+                maxValue: 10
             )
         }
-    }
-
-    private static func discontinuousEquation() -> Equation {
-        SwitchingEquation(
-            thresholdX: 34,
-            underlyingLeft: LinearEquation(m: 1, x1: 0, y1: 0),
-            underlyingRight: ConstantEquation(value: 20
+        
+        private func discontinuousEquation() -> Equation {
+            SwitchingEquation(
+                thresholdX: discontinuity,
+                underlyingLeft: LinearEquation(m: 1, x1: 0, y1: 0),
+                underlyingRight: ConstantEquation(value: 2)
             )
-        )
+        }
     }
 }
 
