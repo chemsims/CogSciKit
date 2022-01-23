@@ -24,22 +24,23 @@ public struct TimeChartDataLine {
     let headColor: Color
     let haloColor: Color?
     let headRadius: CGFloat
-    let discontinuity: CGPoint?
+    let discontinuity: CGFloat?
     let showFilledLine: Bool
 
     /// Creates a new data line
     ///
     /// - Parameters:
-    ///     - equation: Equation which returns the `y` value to plot
-    ///     - xEquation: Equation to return a `x` value, which is used to control the value along the x axis.
-    ///     When no equation is given, the chart input is used as the `x` value
+    ///   - equation: Equation which returns the `y` value to plot
+    ///   - xEquation: Equation to return a `x` value, which is used to control the value along the x axis.
+    ///   When no equation is given, the chart input is used as the `x` value
+    ///   - discontinuity: An optional x value where there is a discontinuity in the underlying `equation`.
     public init(
         equation: Equation,
         xEquation: Equation? = nil,
         headColor: Color,
         haloColor: Color?,
         headRadius: CGFloat,
-        discontinuity: CGPoint? = nil,
+        discontinuity: CGFloat? = nil,
         showFilledLine: Bool = true
     ) {
         self.equation = equation

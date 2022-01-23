@@ -17,7 +17,7 @@ public struct ChartLine: Shape {
 
     var offset: CGFloat
 
-    let discontinuity: CGPoint?
+    let discontinuity: CGFloat?
 
     public init(
         equation: Equation,
@@ -27,7 +27,7 @@ public struct ChartLine: Shape {
         startX: CGFloat,
         endX: CGFloat,
         offset: CGFloat = 0,
-        discontinuity: CGPoint? = nil
+        discontinuity: CGFloat? = nil
     ) {
         self.equation = equation
         self.xEquation = xEquation
@@ -68,11 +68,11 @@ public struct ChartLine: Shape {
         }
 
         if let dc = discontinuity {
-            for x in strideLhs(dx: dx, discontinuityX: dc.x) {
+            for x in strideLhs(dx: dx, discontinuityX: dc) {
                 let y = equation.getValue(at: x)
                 addLine(x: x, y: y)
             }
-            addLine(x: dc.x - (dx / 100), y: equation.getValue(at: dc.x - (dx / 100)))
+            addLine(x: dc - (dx / 100), y: equation.getValue(at: dc - (dx / 100)))
         }
 
         for x in strideRhs(dx: dx) {
@@ -90,7 +90,7 @@ public struct ChartLine: Shape {
 
     private func strideRhs(dx: CGFloat) -> StrideTo<CGFloat> {
         if let dc = discontinuity {
-            return stride(from: dc.x, to: endX, by: dx)
+            return stride(from: dc, to: endX, by: dx)
         } else {
             return stride(from: startX + offset, to: endX, by: dx)
         }
@@ -123,7 +123,7 @@ struct ChartLine_Previews: PreviewProvider {
                         xAxis: xAxis,
                         startX: 0,
                         endX: t2,
-                        discontinuity: CGPoint(x: 34, y: 34)
+                        discontinuity: 34
                     ).stroke(lineWidth: 2)
 
                     ChartIndicatorHead(
