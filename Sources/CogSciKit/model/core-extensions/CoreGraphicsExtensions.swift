@@ -7,7 +7,7 @@ import SwiftUI
 
 extension CGFloat {
     public func str(decimals: Int) -> String {
-        String(format: "%.\(decimals)f", self)
+        String.fromFloat(self, decimals: decimals)
     }
 
     public func rounded(decimals: Int) -> CGFloat {
