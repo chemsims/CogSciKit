@@ -39,84 +39,101 @@ public struct ChartLine: Shape {
         self.discontinuity = discontinuity
     }
 
-    private let maxWidthSteps = 100
+    fileprivate let maxWidthSteps = 100
 
-    private var shiftedXAxis: LinearAxis<CGFloat> {
+    fileprivate var shiftedXAxis: LinearAxis<CGFloat> {
         xAxis.shift(by: offset)
     }
     
-    // TODO - make this safer by breaking early when the x range is 0
     public func path(in rect: CGRect) -> Path {
-        var path = Path()
-
-        let dxPos = rect.width / CGFloat(maxWidthSteps)
-        let dx1 = shiftedXAxis.getValue(at: dxPos) - shiftedXAxis.getValue(at: 0)
-        let dx = startX < endX ? dx1 : -dx1
-
-        var didStart = false
-
-        func addLine(x: CGFloat, y: CGFloat) {
-            let xValue = xEquation?.getValue(at: x) ?? x
-            let xPosition = shiftedXAxis.getPosition(at: xValue)
-            let yPosition = yAxis.getPosition(at: y)
-            if didStart {
-                path.addLine(to: CGPoint(x: xPosition, y: yPosition))
-            } else {
-                path.move(to: CGPoint(x: xPosition, y: yPosition))
-                didStart = true
-            }
-        }
-        
-        // We draw a small part of the line just before and after the discontinuity (if there is one)
-        let discontinuityDelta = dx / 100
-
-        if let discontinuity = discontinuity, discontinuity <= endX {
-            let preDc = discontinuity - discontinuityDelta
-            for x in strideLhs(dx: dx, to: preDc) {
-                addLine(x: x, y: equation.getValue(at: x))
-            }
-            addLine(x: preDc, y: equation.getValue(at: preDc))
-            addLine(x: discontinuity, y: equation.getValue(at: discontinuity))
-            
-            let postDc = discontinuity + discontinuityDelta
-            
-            if postDc < endX {
-                addLine(x: postDc, y: equation.getValue(at: postDc))
-                for x in strideRhsOfDiscontinuity(dx: dx, from: postDc, to: endX) {
-                    addLine(x: x, y: equation.getValue(at: x))
-                }
-            }
-            addLine(x: endX, y: equation.getValue(at: endX))
-            
-        } else {
-            for x in strideAll(dx: dx) {
-                let y = equation.getValue(at: x)
-                addLine(x: x, y: y)
-            }
-            addLine(x: endX, y: equation.getValue(at: endX))
-        }
-
-        return path
+        let helper = ChartLineHelper(underlying: self, rect: rect, path: Path())
+        helper.drawPath()
+        return helper.path
     }
     
-    private func strideLhs(dx: CGFloat, to upperLimit: CGFloat) -> StrideTo<CGFloat> {
-        stride(from: startX + offset, to: upperLimit, by: dx)
-    }
-
-    private func strideAll(dx: CGFloat) -> StrideTo<CGFloat> {
-        stride(from: startX + offset, to: endX, by: dx)
-    }
-    
-    private func strideRhsOfDiscontinuity(dx: CGFloat, from: CGFloat, to upperLimit: CGFloat) -> StrideTo<CGFloat> {
-        stride(from: from, to: upperLimit, by: dx)
-    }
-
     public var animatableData: AnimatablePair<CGFloat, CGFloat> {
         get { AnimatablePair(offset, endX)  }
         set {
             offset = newValue.first
             endX = newValue.second
         }
+    }
+}
+
+
+private class ChartLineHelper {
+    
+    init(underlying: ChartLine, rect: CGRect, path: Path) {
+        self.underlying = underlying
+        self.rect = rect
+        self.path = path
+    }
+    
+    // No need to be weak, since lifecycle of the helper is only in scope in the drawing
+    // method of underlying ChartLine
+    let underlying: ChartLine
+    
+    let rect: CGRect
+    var path: Path
+    
+    func drawPath() {
+        guard !didEnd else {
+            return
+        }
+        if let discontinuity = underlying.discontinuity, discontinuity <= underlying.endX {
+            addLinesWithDiscontinuity(discontinuity: discontinuity)
+        } else {
+            addAllLines()
+        }
+        didEnd = true
+    }
+    
+    private func addLinesWithDiscontinuity(discontinuity: CGFloat) {
+        let discontinuityDelta = dx / 100
+        let preDc = discontinuity - discontinuityDelta
+        addLinesUpToAndIncluding(from: underlying.startX + underlying.offset, to: preDc)
+        addLine(to: discontinuity)
+        
+        let postDc = discontinuity + discontinuityDelta
+        if postDc < underlying.endX {
+            addLinesUpToAndIncluding(from: postDc, to: underlying.endX)
+        }
+    }
+    
+    private func addAllLines() {
+        addLinesUpToAndIncluding(from: underlying.startX + underlying.offset, to: underlying.endX)
+    }
+    
+    private func addLinesUpToAndIncluding(from: CGFloat, to upperLimit: CGFloat) {
+        for x in stride(from: from, to: upperLimit, by: dx) {
+            addLine(to: x)
+        }
+        addLine(to: upperLimit)
+    }
+    
+    private func addLine(to x: CGFloat) {
+        addLine(x: x, y: underlying.equation.getValue(at: x))
+    }
+        
+    private func addLine(x: CGFloat, y: CGFloat) {
+        let xValue = underlying.xEquation?.getValue(at: x) ?? x
+        let xPosition = underlying.shiftedXAxis.getPosition(at: xValue)
+        let yPosition = underlying.yAxis.getPosition(at: y)
+        if didStart {
+            path.addLine(to: CGPoint(x: xPosition, y: yPosition))
+        } else {
+            path.move(to: CGPoint(x: xPosition, y: yPosition))
+            didStart = true
+        }
+    }
+    
+    private var didStart = false
+    private var didEnd = false
+    
+    private var dx: CGFloat {
+        let dxPos = rect.width / CGFloat(underlying.maxWidthSteps)
+        let dx1 = underlying.shiftedXAxis.getValue(at: dxPos) - underlying.shiftedXAxis.getValue(at: 0)
+        return underlying.startX < underlying.endX ? dx1 : -dx1
     }
 }
 
