@@ -13,6 +13,7 @@ public struct AnimatingNumberPlaceholder: View {
         boxWidth: CGFloat = EquationSizing.boxWidth,
         boxHeight: CGFloat = EquationSizing.boxHeight,
         boxPadding: CGFloat = EquationSizing.boxPadding,
+        boxLineWidth: CGFloat = 1,
         formatter: @escaping (CGFloat) -> String = { $0.str(decimals: 2) }
     ) {
         self.showTerm = showTerm
@@ -21,6 +22,7 @@ public struct AnimatingNumberPlaceholder: View {
         self.boxWidth = boxWidth
         self.boxHeight = boxHeight
         self.boxPadding = boxPadding
+        self.boxLineWidth = boxLineWidth
         self.formatter = formatter
     }
 
@@ -30,6 +32,7 @@ public struct AnimatingNumberPlaceholder: View {
     let boxWidth: CGFloat
     let boxHeight: CGFloat
     let boxPadding: CGFloat
+    let boxLineWidth: CGFloat
     let formatter: (CGFloat) -> String
 
     
@@ -44,7 +47,13 @@ public struct AnimatingNumberPlaceholder: View {
             .minimumScaleFactor(0.5)
             .foregroundColor(CorePalette.orangeAccent)
         } else {
-            PlaceholderTerm(value: nil, boxWidth: boxWidth, boxHeight: boxHeight, boxPadding: boxPadding)
+            PlaceholderTerm(
+                value: nil,
+                boxWidth: boxWidth,
+                boxHeight: boxHeight,
+                boxPadding: boxPadding,
+                boxLineWidth: boxLineWidth
+            )
         }
     }
 }

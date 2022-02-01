@@ -12,19 +12,22 @@ public struct PlaceholderTerm: View {
     let boxWidth: CGFloat
     let boxHeight: CGFloat
     let boxPadding: CGFloat
+    let boxLineWidth: CGFloat
 
     public init(
         value: String?,
         emphasise: Bool = false,
         boxWidth: CGFloat = EquationSizing.boxWidth,
         boxHeight: CGFloat = EquationSizing.boxHeight,
-        boxPadding: CGFloat = EquationSizing.boxPadding
+        boxPadding: CGFloat = EquationSizing.boxPadding,
+        boxLineWidth: CGFloat = 1
     ) {
         self.value = value
         self.emphasise = emphasise
         self.boxWidth = boxWidth
         self.boxHeight = boxHeight
         self.boxPadding = boxPadding
+        self.boxLineWidth = boxLineWidth
     }
 
     public var body: some View {
@@ -35,7 +38,7 @@ public struct PlaceholderTerm: View {
                 .foregroundColor(emphasise ? CorePalette.orangeAccent : .black)
                 .accessibility(value: Text(value!))
         } else {
-            Box(padding: boxPadding)
+            Box(padding: boxPadding, lineWidth: boxLineWidth)
                 .modifier(PlaceholderFraming(boxWidth: boxWidth, boxHeight: boxHeight))
                 .accessibility(value: Text("Place-holder"))
         }
@@ -49,7 +52,8 @@ public struct PlaceholderTextLine: View {
         expandedWidth: CGFloat = EquationSizing.boxWidth,
         boxWidth: CGFloat = EquationSizing.boxWidth,
         boxHeight: CGFloat = EquationSizing.boxHeight,
-        boxPadding: CGFloat = EquationSizing.boxPadding
+        boxPadding: CGFloat = EquationSizing.boxPadding,
+        boxLineWidth: CGFloat = 1
     ) {
         self.value = value
         self.fontSize = fontSize
@@ -57,6 +61,7 @@ public struct PlaceholderTextLine: View {
         self.boxWidth = boxWidth
         self.boxHeight = boxHeight
         self.boxPadding = boxPadding
+        self.boxLineWidth = boxLineWidth
     }
 
     let value: TextLine?
@@ -66,6 +71,7 @@ public struct PlaceholderTextLine: View {
     let boxWidth: CGFloat
     let boxHeight: CGFloat
     let boxPadding: CGFloat
+    let boxLineWidth: CGFloat
 
     public var body: some View {
         if value != nil {
@@ -76,7 +82,7 @@ public struct PlaceholderTextLine: View {
                 .accessibilityElement(children: .ignore)
                 .accessibility(value: Text(value!.label))
         } else {
-            Box(padding: boxPadding)
+            Box(padding: boxPadding, lineWidth: boxLineWidth)
                 .frame(width: boxWidth, height: boxHeight)
                 .minimumScaleFactor(0.5)
                 .accessibility(value: Text("Place-holder"))
@@ -102,9 +108,10 @@ private struct PlaceholderFraming: ViewModifier {
 private struct Box: View {
 
     let padding: CGFloat
+    let lineWidth: CGFloat
 
     var body: some View {
-        PlaceholderBox()
+        PlaceholderBox(lineWidth: lineWidth)
             .padding(padding)
     }
 }
@@ -112,15 +119,18 @@ private struct Box: View {
 /// A box with a dashed border
 public struct PlaceholderBox: View {
 
-    public init() {
+    public init(lineWidth: CGFloat = 1) {
+        self.lineWidth = lineWidth
     }
+    
+    let lineWidth: CGFloat
 
     public var body: some View {
         GeometryReader { geometry in
             Rectangle()
                 .stroke(
                     style: StrokeStyle(
-                        lineWidth: 1,
+                        lineWidth: lineWidth,
                         lineCap: .square,
                         lineJoin: .round,
                         miterLimit: 0,
