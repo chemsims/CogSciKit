@@ -71,7 +71,7 @@ public struct ChartLine: Shape {
         let discontinuityDelta = dx / 100
 
         if let dc = discontinuity {
-            for x in strideLhs(dx: dx, discontinuityX: dc) {
+            for x in strideLhs(dx: dx, discontinuity: dc) {
                 let y = equation.getValue(at: x)
                 addLine(x: x, y: y)
             }
@@ -89,8 +89,8 @@ public struct ChartLine: Shape {
         return path
     }
 
-    private func strideLhs(dx: CGFloat, discontinuityX: CGFloat) -> StrideTo<CGFloat> {
-        stride(from: startX + offset, to: discontinuityX, by: dx)
+    private func strideLhs(dx: CGFloat, discontinuity: CGFloat) -> StrideTo<CGFloat> {
+        stride(from: startX + offset, to: discontinuity, by: dx)
     }
 
     private func strideRhs(dx: CGFloat, discontinuityDelta: CGFloat) -> StrideTo<CGFloat> {
