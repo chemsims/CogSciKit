@@ -10,19 +10,29 @@ public struct AnimatingNumberPlaceholder: View {
         showTerm: Bool,
         progress: CGFloat,
         equation: Equation,
+        boxWidth: CGFloat = EquationSizing.boxWidth,
+        boxHeight: CGFloat = EquationSizing.boxHeight,
+        boxPadding: CGFloat = EquationSizing.boxPadding,
         formatter: @escaping (CGFloat) -> String = { $0.str(decimals: 2) }
     ) {
         self.showTerm = showTerm
         self.progress = progress
         self.equation = equation
+        self.boxWidth = boxWidth
+        self.boxHeight = boxHeight
+        self.boxPadding = boxPadding
         self.formatter = formatter
     }
 
     let showTerm: Bool
     let progress: CGFloat
     let equation: Equation
+    let boxWidth: CGFloat
+    let boxHeight: CGFloat
+    let boxPadding: CGFloat
     let formatter: (CGFloat) -> String
 
+    
     public var body: some View {
         if showTerm {
             AnimatingNumber(
@@ -34,7 +44,7 @@ public struct AnimatingNumberPlaceholder: View {
             .minimumScaleFactor(0.5)
             .foregroundColor(CorePalette.orangeAccent)
         } else {
-            PlaceholderTerm(value: nil)
+            PlaceholderTerm(value: nil, boxWidth: boxWidth, boxHeight: boxHeight, boxPadding: boxPadding)
         }
     }
 }
