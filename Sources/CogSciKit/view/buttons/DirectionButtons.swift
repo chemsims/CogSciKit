@@ -37,6 +37,22 @@ public struct PreviousButton: View {
     }
 }
 
+public struct RetryButton: View {
+    let action: () -> Void
+    
+    public init(action: @escaping () -> Void) {
+        self.action = action
+    }
+    
+    public var body: some View {
+        GeneralDirectionButton(
+            action: action,
+            systemImage: "arrow.counterclockwise"
+        )
+        .accessibility(label: Text("retry"))
+    }
+}
+
 private struct GeneralDirectionButton: View {
     let action: () -> Void
     let systemImage: String
@@ -61,6 +77,7 @@ struct NextButton_Previews: PreviewProvider {
             NextButton(
                 action: {}
             )
+            RetryButton(action: { })
         }
     }
 }
