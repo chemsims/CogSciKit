@@ -4,6 +4,8 @@
 
 import Foundation
 
+
+// TODO: Make a nicer API for constructing this. Hide the staticNext/staticPrev as implementation detail
 public class ScreenStateTreeNode<State: ScreenState> {
 
     public init(state: State) {
@@ -16,7 +18,8 @@ public class ScreenStateTreeNode<State: ScreenState> {
             staticNext?.staticPrev = self
         }
     }
-    fileprivate var staticPrev: ScreenStateTreeNode<State>?
+    
+    public var staticPrev: ScreenStateTreeNode<State>?
 
     public func next(model: State.Model) -> ScreenStateTreeNode<State>? {
         staticNext
