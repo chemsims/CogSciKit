@@ -38,4 +38,27 @@ class SwiftExtensionTests: XCTestCase {
         XCTAssertEqual(String.fromFloat(0.0001, decimals: 3), "0.000")
         XCTAssertEqual(String.fromFloat(-0.0001, decimals: 3), "0.000")
     }
+    
+    func testArraySafeIndexSubscript() {
+        let array = [1, 2]
+        XCTAssertEqual(array[safe: 0], 1)
+        XCTAssertEqual(array[safe: 1], 2)
+        XCTAssertEqual(array[safe: 2], nil)
+        XCTAssertEqual(array[safe: -1], nil)
+    }
+    
+    func testGettingArrayElementBeforeAndAfterOther() {
+        let array = ["A", "B", "C"]
+        XCTAssertEqual(array.element(before: "B"), "A")
+        XCTAssertEqual(array.element(after: "B"), "C")
+        
+        XCTAssertEqual(array.element(before: "A"), nil)
+        XCTAssertEqual(array.element(after: "A"), "B")
+        
+        XCTAssertEqual(array.element(before: "C"), "B")
+        XCTAssertEqual(array.element(after: "C"), nil)
+        
+        XCTAssertEqual(array.element(before: "D"), nil)
+        XCTAssertEqual(array.element(after: "D"), nil)
+    }
 }
