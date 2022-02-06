@@ -3,7 +3,7 @@
 //
 
 import XCTest
-import CogSciKit
+@testable import CogSciKit
 
 class NavigationModelTests: XCTestCase {
 
@@ -111,9 +111,9 @@ class NavigationModelTests: XCTestCase {
         let s3Node = ScreenStateTreeNode(state: s3)
         let s3AlternativeNode = ScreenStateTreeNode(state: s3Alternative)
 
-        s1Node.staticNext = s2Node
-        s2Node.staticNext = s3Node
-        s2Node.staticNextAlternative = s3AlternativeNode
+        s1Node.attach(to: s2Node)
+        s2Node.attach(to: s3Node)
+        s2Node.conditionallyAttach(to: s3AlternativeNode)
 
         let tester = TesterClass()
         let model = NavigationModel(model: tester, rootNode: s1Node)

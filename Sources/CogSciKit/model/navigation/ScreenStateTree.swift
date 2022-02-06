@@ -4,8 +4,6 @@
 
 import Foundation
 
-
-// TODO: Make a nicer API for constructing this. Hide the staticNext/staticPrev as implementation detail
 public class ScreenStateTreeNode<State: ScreenState> {
 
     public init(state: State) {
@@ -13,13 +11,18 @@ public class ScreenStateTreeNode<State: ScreenState> {
     }
 
     public let state: State
-    public var staticNext: ScreenStateTreeNode<State>? {
-        didSet {
-            staticNext?.staticPrev = self
-        }
+    
+    var staticNext: ScreenStateTreeNode<State>?
+    var staticPrev: ScreenStateTreeNode<State>?
+    
+    public var root: ScreenStateTreeNode<State> {
+        staticPrev?.root ?? self
     }
     
-    public var staticPrev: ScreenStateTreeNode<State>?
+    public func attach(to nextNode: ScreenStateTreeNode) {
+        self.staticNext = nextNode
+        nextNode.staticPrev = self
+    }
 
     public func next(model: State.Model) -> ScreenStateTreeNode<State>? {
         staticNext
@@ -30,24 +33,25 @@ public class ScreenStateTreeNode<State: ScreenState> {
     }
 }
 
-public class ConditionalScreenStateNode<State: ScreenState>: ScreenStateTreeNode<State> {
+class ConditionalScreenStateNode<State: ScreenState>: ScreenStateTreeNode<State> {
     public init(state: State, applyAlternativeNode: @escaping (State.Model) -> Bool) {
         self.applyAlternativeNode = applyAlternativeNode
         super.init(state: state)
     }
 
     private let applyAlternativeNode: (State.Model) -> Bool
-    public var staticNextAlternative: ScreenStateTreeNode<State>? {
-        didSet {
-            staticNextAlternative?.staticPrev = self
-        }
-    }
+    var staticNextAlternative: ScreenStateTreeNode<State>?
 
-    public override func next(model: State.Model) -> ScreenStateTreeNode<State>? {
+    override func next(model: State.Model) -> ScreenStateTreeNode<State>? {
         if applyAlternativeNode(model) {
             return staticNextAlternative
         }
         return staticNext
+    }
+    
+    func conditionallyAttach(to nextNode: ScreenStateTreeNode<State>) {
+        self.staticNextAlternative = nextNode
+        nextNode.staticPrev = self
     }
 }
 
@@ -58,7 +62,9 @@ extension ScreenStateTreeNode {
         (0..<nodes.count).forEach { index in
             let nextIndex = index + 1
             let nextNode = nodes.indices.contains(nextIndex) ? nodes[nextIndex] : nil
-            nodes[index].staticNext = nextNode
+            if let nextNode = nextNode {
+                nodes[index].attach(to: nextNode)
+            }
         }
 
         return nodes.first
