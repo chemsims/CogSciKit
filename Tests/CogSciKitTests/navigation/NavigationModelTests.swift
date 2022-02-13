@@ -132,6 +132,30 @@ class NavigationModelTests: XCTestCase {
         model.next()
         XCTAssertEqual(tester.value, s3.value)
     }
+    
+    func testHasNextAndHasPrevious() {
+        let states = [TesterState(), TesterState(), TesterState()]
+        let model = NavigationModel(model: TesterClass(), states: states)
+        
+        XCTAssert(model.hasNext)
+        XCTAssertFalse(model.hasPrevious)
+        
+        model.next()
+        XCTAssert(model.hasNext)
+        XCTAssert(model.hasPrevious)
+        
+        model.next()
+        XCTAssertFalse(model.hasNext)
+        XCTAssert(model.hasPrevious)
+        
+        model.back()
+        XCTAssert(model.hasNext)
+        XCTAssert(model.hasPrevious)
+        
+        model.back()
+        XCTAssert(model.hasNext)
+        XCTAssertFalse(model.hasPrevious)
+    }
 }
 
 private class TesterClass { var value = 0 }
