@@ -13,6 +13,14 @@ class CoreGraphicsExtensionsTests: XCTestCase {
         XCTAssertEqual(CGPoint.zero.offset(CGSize(width: 100, height: -200)), CGPoint(x: 100, y: -200))
     }
     
+    func testOffsetOfAPointALongAnAngle() {
+        XCTAssertEqual(CGPoint.zero.offset(length: 10, angle: .degrees(30)).x, 10 * cos(30 * (Double.pi / 180)))
+        XCTAssertEqual(CGPoint.zero.offset(length: 10, angle: .degrees(30)).y, 10 * sin(30 * (Double.pi / 180)))
+        
+        XCTAssertEqual(CGPoint(x: 5, y: -5).offset(length: 10, angle: .degrees(-45)).x, 5 + (10 * cos(-45 * (Double.pi / 180))))
+        XCTAssertEqual(CGPoint(x: 5, y: -5).offset(length: 10, angle: .degrees(-45)).y, -5 + (10 * sin(-45 * (Double.pi / 180))))
+    }
+    
     func testScalingACGSize() {
         XCTAssertEqual(CGSize(width: 10, height: 20).scaled(by: 2), CGSize(width: 20, height: 40))
         XCTAssertEqual(CGSize(width: -30, height: -50).scaled(by: 0.1), CGSize(width: -3, height: -5))

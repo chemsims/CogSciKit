@@ -27,6 +27,14 @@ extension CGPoint {
         self.offset(dx: size.width, dy: size.height)
     }
     
+    /// Returns a new point which is offset by the given `length` along the given `angle`.
+    public func offset(length: CGFloat, angle: Angle) -> CGPoint {
+        CGPoint(
+            x: self.x + (length * cos(angle.radians)),
+            y: self.y + (length * sin(angle.radians))
+        )
+    }
+    
     /// Returns the point as a size.
     public var asSize: CGSize {
         CGSize(width: x, height: y)
