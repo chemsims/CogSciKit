@@ -34,7 +34,7 @@ public class ScreenStateTreeNode<State: ScreenState> {
 }
 
 class ConditionalScreenStateNode<State: ScreenState>: ScreenStateTreeNode<State> {
-    public init(state: State, applyAlternativeNode: @escaping (State.Model) -> Bool) {
+    init(state: State, applyAlternativeNode: @escaping (State.Model) -> Bool) {
         self.applyAlternativeNode = applyAlternativeNode
         super.init(state: state)
     }
@@ -52,6 +52,41 @@ class ConditionalScreenStateNode<State: ScreenState>: ScreenStateTreeNode<State>
     func conditionallyAttach(to nextNode: ScreenStateTreeNode<State>) {
         self.staticNextAlternative = nextNode
         nextNode.staticPrev = self
+    }
+}
+
+class LoopingScreenStateNode<State: ScreenState>: ScreenStateTreeNode<State> {
+    
+    /// Creates a loop which jumps to `startOfLoop` whenever the given condition is met.
+    init(
+        state: State,
+        startOfLoop: ScreenStateTreeNode<State>,
+        shouldLoop: @escaping (State.Model) -> Bool
+    ) {
+        self.startOfLoop = startOfLoop
+        self.shouldLoop = shouldLoop
+        super.init(state: state)
+    }
+    
+    /// Creates a loop which repeats itself whenever the given condition is met
+    init(
+        state: State,
+        shouldLoop: @escaping (State.Model) -> Bool
+    ) {
+        self.shouldLoop = shouldLoop
+        super.init(state: state)
+        self.startOfLoop = self
+    }
+    
+    private var startOfLoop: ScreenStateTreeNode<State>?
+    private let shouldLoop: (State.Model) -> Bool
+        
+    override func next(model: State.Model) -> ScreenStateTreeNode<State>? {
+        if shouldLoop(model) {
+            return startOfLoop
+        } else {
+            return super.next(model: model)
+        }
     }
 }
 

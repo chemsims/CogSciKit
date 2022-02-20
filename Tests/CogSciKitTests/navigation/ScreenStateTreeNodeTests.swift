@@ -50,7 +50,7 @@ class ScreenStateTreeNodeTests: XCTestCase {
         XCTAssertEqual(backToFirstNode?.state.value, 0)
     }
     
-    func testLooping() {
+    func testJumpingToAnotherNode() {
         let incrementState: TesterState = IncrementingState()
         
         let incrementTwice = incrementState.andThen(incrementState)
@@ -100,6 +100,110 @@ class ScreenStateTreeNodeTests: XCTestCase {
         // We've reached the start, so there are no more states
         navModel.back()
         XCTAssertEqual(tester.value, 13)
+    }
+    
+    func testLoopingANodeWithAParentOnce() {
+        let incrementState: TesterState = IncrementingState()
+        let incrementTwice = incrementState.andThen(incrementState)
+        let root = incrementTwice
+            .loop(while: { $0.value < 3 })
+            .andThen(SetValue(value: 0))
+            .root
+        
+        let tester = TesterClass()
+        let navModel = NavigationModel(model: tester, rootNode: root)
+        
+        XCTAssertEqual(tester.value, 1)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 2)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 3)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 4)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 0)
+        
+        navModel.back()
+        XCTAssertEqual(tester.value, 1)
+        
+        navModel.back()
+        XCTAssertEqual(tester.value, 2)
+        
+        XCTAssertFalse(navModel.hasPrevious)
+    }
+    
+    func testLoopingANodeWithAParentTwice() {
+        let incrementState: TesterState = IncrementingState()
+        let incrementTwice = incrementState.andThen(incrementState)
+        let root = incrementTwice
+            .loop(while: { $0.value < 5 })
+            .andThen(SetValue(value: 0))
+            .root
+        
+        let tester = TesterClass()
+        let navModel = NavigationModel(model: tester, rootNode: root)
+        
+        XCTAssertEqual(tester.value, 1)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 2)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 3)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 4)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 5)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 6)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 0)
+        
+        navModel.back()
+        XCTAssertEqual(tester.value, 1)
+        
+        navModel.back()
+        XCTAssertEqual(tester.value, 2)
+        
+        XCTAssertFalse(navModel.hasPrevious)
+    }
+    
+    func testLoopingANodeWithNoParentTwice() {
+        let incrementState: TesterState = IncrementingState()
+        
+        let root = ScreenStateTreeNode(state: incrementState)
+            .loop(while: { $0.value < 3 })
+            .andThen(SetValue(value: 0))
+            .root
+        
+        let tester = TesterClass()
+        let navModel = NavigationModel(model: tester, rootNode: root)
+        
+        XCTAssertEqual(tester.value, 1)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 2)
+        
+        XCTAssert(navModel.hasNext)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 3)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 0)
+                
+        navModel.back()
+        XCTAssertEqual(tester.value, 1)
+        
+        XCTAssertFalse(navModel.hasPrevious)
     }
 }
 
