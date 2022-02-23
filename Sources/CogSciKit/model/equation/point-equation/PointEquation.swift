@@ -83,3 +83,15 @@ public struct WrappedPointEquation: PointEquation {
         )
     }
 }
+
+public struct ClosurePointEquation: PointEquation {
+    public init(_ transform: @escaping (CGFloat) -> CGPoint) {
+        self.transform = transform
+    }
+    
+    let transform: (CGFloat) -> CGPoint
+    
+    public func getPoint(at progress: CGFloat) -> CGPoint {
+        transform(progress)
+    }
+}
