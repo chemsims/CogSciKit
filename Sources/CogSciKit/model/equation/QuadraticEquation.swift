@@ -88,7 +88,7 @@ public struct QuadraticEquation: Equation {
     ) -> (CGFloat, CGFloat)? {
         let termToSqrt = pow(b, 2) - (4 * a * c)
         let denom = 2 * a
-        guard termToSqrt > 0, denom != 0 else {
+        guard termToSqrt >= 0, denom != 0 else {
             return nil
         }
         let sqrtTerm = sqrt(termToSqrt)
