@@ -35,12 +35,6 @@ public protocol ScreenState {
     var backBehaviour: NavigationModelBackBehaviour { get }
 }
 
-extension ScreenState {
-    public var backBehaviour: NavigationModelBackBehaviour {
-        .unapply
-    }
-}
-
 public protocol SubState {
     associatedtype Model
     func apply(on model: Model)
