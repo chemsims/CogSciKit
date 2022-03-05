@@ -83,7 +83,7 @@ class NavigationModelTests: XCTestCase {
 
     func testIgnoreSkipAndIgnoreOnBack() {
         let s1 = SetValueState(value: 1)
-        let s2 = SetValueWithUnapply(value: 2, unappliedValue: -1, ignoreOnBack: .skipAndIgnore)
+        let s2 = SetValueWithUnapply(value: 2, unappliedValue: -1, backBehaviour: .skipAndIgnore)
         let s3 = SetValueState(value: 3)
 
         let tester = TesterClass()
@@ -106,7 +106,7 @@ class NavigationModelTests: XCTestCase {
     
     func testIgnoreSkip() {
         let s1 = SetValueState(value: 1)
-        let s2 = SetValueWithUnapply(value: 2, unappliedValue: -1, ignoreOnBack: .skip)
+        let s2 = SetValueWithUnapply(value: 2, unappliedValue: -1, backBehaviour: .skip)
         let s3 = SetValueState(value: 3)
 
         let tester = TesterClass()
@@ -204,7 +204,7 @@ private class TesterState: ScreenState, SubState {
         nil
     }
 
-    var ignoreOnBack: NavigationModelBackBehaviour {
+    var backBehaviour: NavigationModelBackBehaviour {
         .unapply
     }
 
@@ -217,18 +217,18 @@ private class SetValueState: TesterState {
         value: Int,
         shouldReapply: Bool = true,
         expectation: XCTestExpectation? = nil,
-        ignoreOnBack: NavigationModelBackBehaviour = .unapply
+        backBehaviour: NavigationModelBackBehaviour = .unapply
     ) {
         self.value = value
         self.shouldReapply = shouldReapply
         self.expectation = expectation
-        self.doIgnoreOnBack = ignoreOnBack
+        self._backBehaviour = backBehaviour
     }
 
     let value: Int
     let shouldReapply: Bool
     let expectation: XCTestExpectation?
-    let doIgnoreOnBack: NavigationModelBackBehaviour
+    private let _backBehaviour: NavigationModelBackBehaviour
 
     override func apply(on model: TesterClass) {
         model.value = value
@@ -243,15 +243,15 @@ private class SetValueState: TesterState {
         }
     }
 
-    override var ignoreOnBack: NavigationModelBackBehaviour {
-        doIgnoreOnBack
+    override var backBehaviour: NavigationModelBackBehaviour {
+        _backBehaviour
     }
 }
 
 private class SetValueWithUnapply: SetValueState {
-    init(value: Int, unappliedValue: Int, ignoreOnBack: NavigationModelBackBehaviour) {
+    init(value: Int, unappliedValue: Int, backBehaviour: NavigationModelBackBehaviour) {
         self.unappliedValue = unappliedValue
-        super.init(value: value, ignoreOnBack: ignoreOnBack)
+        super.init(value: value, backBehaviour: backBehaviour)
     }
     
     private let unappliedValue: Int

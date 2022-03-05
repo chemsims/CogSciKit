@@ -224,8 +224,8 @@ private class TesterState: ScreenState, SubState {
         nil
     }
 
-    var ignoreOnBack: Bool {
-        false
+    var backBehaviour: NavigationModelBackBehaviour {
+        .unapply
     }
 
     typealias NestedState = SetValue

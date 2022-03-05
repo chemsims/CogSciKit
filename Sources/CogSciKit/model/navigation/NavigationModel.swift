@@ -46,13 +46,13 @@ public class NavigationModel<State: ScreenState> {
             let currentState = currentNode.state
             let previousState = previousNode.state
             
-            if currentState.ignoreOnBack.shouldUnapply {
+            if currentState.backBehaviour.shouldUnapply {
                 currentState.unapply(on: model)
             }
             
             currentNode = previousNode
             
-            if previousState.ignoreOnBack.shouldSkip {
+            if previousState.backBehaviour.shouldSkip {
                 back()
             } else {
                 previousState.reapply(on: model)
