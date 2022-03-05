@@ -32,12 +32,12 @@ public protocol ScreenState {
     func nextStateAutoDispatchDelay(model: Model) -> Double?
 
     /// When clicking back, should this state be ignored
-    var ignoreOnBack: Bool { get }
+    var ignoreOnBack: NavigationModelBackBehaviour { get }
 }
 
 extension ScreenState {
-    public var ignoreOnBack: Bool {
-        false
+    public var ignoreOnBack: NavigationModelBackBehaviour {
+        .unapply
     }
 }
 
@@ -55,3 +55,4 @@ public struct DelayedState<State: SubState> {
         self.delay = delay
     }
 }
+

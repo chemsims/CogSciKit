@@ -81,13 +81,15 @@ class NavigationModelTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(elapsedSeconds, minDelay)
     }
 
-    func testIgnoreOnBack() {
+    func testIgnoreSkipAndIgnoreOnBack() {
         let s1 = SetValueState(value: 1)
-        let s2 = SetValueState(value: 2, ignoreOnBack: true)
+        let s2 = SetValueWithUnapply(value: 2, unappliedValue: -1, ignoreOnBack: .skipAndIgnore)
         let s3 = SetValueState(value: 3)
 
         let tester = TesterClass()
         let model = NavigationModel(model: tester, states: [s1, s2, s3])
+        
+        XCTAssertEqual(tester.unappliedValue, 0)
 
         model.next()
         model.next()
@@ -95,6 +97,31 @@ class NavigationModelTests: XCTestCase {
 
         model.back()
         XCTAssertEqual(tester.value, s1.value)
+        
+        XCTAssertEqual(tester.unappliedValue, 0)
+
+        model.next()
+        XCTAssertEqual(tester.value, s2.value)
+    }
+    
+    func testIgnoreSkip() {
+        let s1 = SetValueState(value: 1)
+        let s2 = SetValueWithUnapply(value: 2, unappliedValue: -1, ignoreOnBack: .skip)
+        let s3 = SetValueState(value: 3)
+
+        let tester = TesterClass()
+        let model = NavigationModel(model: tester, states: [s1, s2, s3])
+        
+        XCTAssertEqual(tester.unappliedValue, 0)
+
+        model.next()
+        model.next()
+        XCTAssertEqual(tester.value, s3.value)
+
+        model.back()
+        XCTAssertEqual(tester.value, s1.value)
+        
+        XCTAssertEqual(tester.unappliedValue, -1)
 
         model.next()
         XCTAssertEqual(tester.value, s2.value)
@@ -158,7 +185,10 @@ class NavigationModelTests: XCTestCase {
     }
 }
 
-private class TesterClass { var value = 0 }
+private class TesterClass {
+    var value = 0
+    var unappliedValue = 0
+}
 
 private class TesterState: ScreenState, SubState {
     func delayedStates(model: TesterClass) -> [DelayedState<TesterState>] {
@@ -174,8 +204,8 @@ private class TesterState: ScreenState, SubState {
         nil
     }
 
-    var ignoreOnBack: Bool {
-        false
+    var ignoreOnBack: NavigationModelBackBehaviour {
+        .unapply
     }
 
     typealias NestedState = TesterState
@@ -187,7 +217,7 @@ private class SetValueState: TesterState {
         value: Int,
         shouldReapply: Bool = true,
         expectation: XCTestExpectation? = nil,
-        ignoreOnBack: Bool = false
+        ignoreOnBack: NavigationModelBackBehaviour = .unapply
     ) {
         self.value = value
         self.shouldReapply = shouldReapply
@@ -198,7 +228,7 @@ private class SetValueState: TesterState {
     let value: Int
     let shouldReapply: Bool
     let expectation: XCTestExpectation?
-    let doIgnoreOnBack: Bool
+    let doIgnoreOnBack: NavigationModelBackBehaviour
 
     override func apply(on model: TesterClass) {
         model.value = value
@@ -213,10 +243,22 @@ private class SetValueState: TesterState {
         }
     }
 
-    override var ignoreOnBack: Bool {
+    override var ignoreOnBack: NavigationModelBackBehaviour {
         doIgnoreOnBack
     }
+}
 
+private class SetValueWithUnapply: SetValueState {
+    init(value: Int, unappliedValue: Int, ignoreOnBack: NavigationModelBackBehaviour) {
+        self.unappliedValue = unappliedValue
+        super.init(value: value, ignoreOnBack: ignoreOnBack)
+    }
+    
+    private let unappliedValue: Int
+    
+    override func unapply(on model: TesterClass) {
+        model.unappliedValue = unappliedValue
+    }
 }
 
 private class StateWithAutoDispatch: SetValueState {
