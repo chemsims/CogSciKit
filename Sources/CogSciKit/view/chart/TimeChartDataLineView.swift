@@ -74,23 +74,27 @@ public struct TimeChartDataLineView: View {
                     color: data.haloColor!
                 )
                 .contentShape(Rectangle())
-                .gesture(DragGesture(minimumDistance: 0).onChanged { gesture in
-                    guard canSetCurrentTime else {
-                        return
-                    }
-                    let xLocation = gesture.location.x
-                    let shiftedAxis = settings.xAxis.shift(by: offset)
-                    let newTime = shiftedAxis.getValue(at: xLocation)
-
-                    let minTime = minDragTime ?? initialTime + offset
-                    let maxTime = finalTime + offset
-                    currentTime = max(minTime, min(maxTime, newTime))
-                })
+                .gesture(canSetCurrentTime ? dragGesture : nil)
             }
             head(
                 radius: data.headRadius,
                 color: data.headColor
             )
+        }
+    }
+    
+    private var dragGesture: some Gesture {
+        DragGesture(minimumDistance: 0).onChanged { gesture in
+            guard canSetCurrentTime else {
+                return
+            }
+            let xLocation = gesture.location.x
+            let shiftedAxis = settings.xAxis.shift(by: offset)
+            let newTime = shiftedAxis.getValue(at: xLocation)
+
+            let minTime = minDragTime ?? initialTime + offset
+            let maxTime = finalTime + offset
+            currentTime = max(minTime, min(maxTime, newTime))
         }
     }
 
