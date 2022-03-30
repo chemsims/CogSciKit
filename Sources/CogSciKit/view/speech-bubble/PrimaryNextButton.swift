@@ -4,6 +4,55 @@
 
 import SwiftUI
 
+public struct PrimaryNextOrRetryButton: View {
+    
+    public init(actionType: Action, action: @escaping () -> Void) {
+        self.actionType = actionType
+        self.action = action
+    }
+    
+    let actionType: Action
+    let action: () -> Void
+    
+    public var body: some View {
+        GeometryReader { geo in
+            GeneralPrimaryButtonWithGeometry(
+                name: actionType.name,
+                imageName: actionType.imageName,
+                iconUnitPadding: actionType.imageUnitPadding,
+                action: action,
+                geometry: geo
+            )
+        }
+    }
+    
+    public enum Action: String {
+        case next, retry
+        
+        var name: String {
+            rawValue.capitalized
+        }
+        
+        var imageName: String {
+            switch self {
+            case .next:
+                return "arrowtriangle.right.fill"
+            case .retry:
+                return "arrow.counterclockwise"
+            }
+        }
+        
+        var imageUnitPadding: CGFloat {
+            switch self {
+            case .next:
+                return 0.3
+            case .retry:
+                return 0.2
+            }
+        }
+    }
+}
+
 public struct PrimaryNextButton: View {
     
     public init(action: @escaping () -> Void) {
@@ -13,17 +62,15 @@ public struct PrimaryNextButton: View {
     let action: () -> Void
 
     public var body: some View {
-        GeometryReader { geo in
-            PrimaryNextButtonWithGeometry(
-                action: action,
-                geometry: geo
-            )
-        }
+        PrimaryNextOrRetryButton(actionType: .next, action: action)
     }
 }
 
-private struct PrimaryNextButtonWithGeometry: View {
-    
+private struct GeneralPrimaryButtonWithGeometry: View {
+
+    let name: String
+    let imageName: String
+    let iconUnitPadding: CGFloat
     let action: () -> Void
     let geometry: GeometryProxy
     @Environment(\.isEnabled) var isEnabled
@@ -33,10 +80,12 @@ private struct PrimaryNextButtonWithGeometry: View {
             content
         }
         .buttonStyle(SquashButtonStyle(scaleDelta: 0.02))
-        .accessibility(label: Text("Next"))
+        .accessibility(label: Text(name))
         .disabled(isDisabled)
         .compositingGroup()
         .opacity(isDisabled ? 0.6 : 1)
+        .animation(nil, value: name)
+        .animation(nil, value: iconUnitPadding)
     }
 
     private var content: some View {
@@ -62,7 +111,7 @@ private struct PrimaryNextButtonWithGeometry: View {
         HStack(spacing: 0) {
             Spacer()
                 .frame(width: height / 2)
-            Text("Next")
+            Text(name)
                 .frame(width: width - (1.5 * height))
                 .foregroundColor(accentColor)
                 .font(.system(size: fontSize, weight: .semibold))
@@ -77,7 +126,7 @@ private struct PrimaryNextButtonWithGeometry: View {
             Circle()
                 .foregroundColor(accentColor)
 
-            Image(systemName: "arrowtriangle.right.fill")
+            Image(systemName: imageName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .foregroundColor(CorePalette.speechBubble)
@@ -93,7 +142,7 @@ private struct PrimaryNextButtonWithGeometry: View {
     private var isDisabled: Bool { !isEnabled }
 }
 
-private extension PrimaryNextButtonWithGeometry {
+private extension GeneralPrimaryButtonWithGeometry {
     var width: CGFloat {
         geometry.size.width
     }
@@ -107,7 +156,7 @@ private extension PrimaryNextButtonWithGeometry {
     }
 
     var iconPadding: CGFloat {
-        0.3 * height
+        iconUnitPadding * height
     }
 
     var fontSize: CGFloat {
@@ -115,16 +164,32 @@ private extension PrimaryNextButtonWithGeometry {
     }
 }
 
-
 struct PrimaryNextButton_Previews: PreviewProvider {
     static var previews: some View {
-        VStack {
-            PrimaryNextButton(action: {})
-                .frame(width: 200, height: 50)
+        ViewWrapper()
+    }
+    
+    private struct ViewWrapper: View {
+        @State var actionType = PrimaryNextOrRetryButton.Action.retry
+        
+        var body: some View {
+            VStack {
+                PrimaryNextOrRetryButton(actionType: actionType, action: {})
+                    .frame(width: 200, height: 50)
+                
+                PrimaryNextButton(action: {})
+                    .frame(width: 200, height: 50)
 
-            PrimaryNextButton(action: {})
-                .frame(width: 200, height: 50)
-                .disabled(true)
+                PrimaryNextButton(action: {})
+                    .frame(width: 200, height: 50)
+                    .disabled(true)
+                
+                Button("Toggle action type") {
+                    withAnimation {
+                        actionType = actionType == .next ? .retry : .next
+                    }
+                }
+            }
         }
     }
 }
