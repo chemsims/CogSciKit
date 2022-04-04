@@ -5,7 +5,8 @@
 /// A state which composes a sequence of states into a single state.
 ///
 /// - Note:
-///   - The `delayedStates` are currently ignored, but this may change later. The smallest
+///   - The `delayedStates` returns all the delayed states of the provided sequence,
+///   reordered to maintain the correct timing.
 ///   - The smallest non-nil `nextStateAutoDispatchDelay` is used for this states delay.
 ///
 ///   - `ignoreOnBack` returns true if **any** of the states return true
@@ -39,8 +40,14 @@ open class ScreenStateSequence<State : ScreenState>: ScreenState {
         }
     }
     
+    /// Returns the delayed states from the sequence, re-ordered to maintain correct timing.
+    ///
+    /// For example, say we have state A with the delayed state A1 after 1 second, and A2 1 second after that.
+    /// And say we have state B with delayed state B1 after 1.5 seconds.
+    ///
+    /// The overall states and their delays should be A1 (1 second), B1 (0.5 seconds), A2 (0.5 seconds).
     public func delayedStates(model: State.Model) -> [DelayedState<State.NestedState>] {
-        []
+        flattenDelayedStates(states.map { $0.delayedStates(model: model) })
     }
     
     /// Returns the smallest non-nil delay from the state array.
@@ -65,5 +72,57 @@ open class ScreenStateSequence<State : ScreenState>: ScreenState {
         }
         
         return .unapply
+    }
+}
+
+extension ScreenStateSequence {
+    private func flattenDelayedStates(_ states: [[DelayedState<State.NestedState>]]) -> [DelayedState<State.NestedState>] {
+        let statesWithAbsoluteDelay = states.flatMap(mapRelativeDelaysToAbsoluteDelays)
+        
+        let orderedStates = statesWithAbsoluteDelay.sorted {
+            $0.delay < $1.delay
+        }
+        
+        return mapAbsoluteDelaysToRelativeDelays(orderedStates)
+    }
+    
+    // Converts each state (except the first one) to use an absolute delay, instead of being
+    // relative to the previous state.
+    private func mapRelativeDelaysToAbsoluteDelays(_ states: [DelayedState<State.NestedState>]) -> [DelayedState<State.NestedState>] {
+        var result = [DelayedState<State.NestedState>]()
+        var timeAccumulator = 0.0
+        
+        for delayedState in states {
+            let newDelay = delayedState.delay + timeAccumulator
+            let newState = delayedState.withDelay(newDelay)
+            
+            result.append(newState)
+            timeAccumulator += delayedState.delay
+        }
+        
+        return result
+    }
+    
+    // Converts each state to use a delay relative to the previous state, instead of
+    // being an absolute delay.
+    private func mapAbsoluteDelaysToRelativeDelays(_ states: [DelayedState<State.NestedState>]) -> [DelayedState<State.NestedState>] {
+        var result = [DelayedState<State.NestedState>]()
+        var previousTime = 0.0
+        
+        for delayedState in states {
+            let newDelay = delayedState.delay - previousTime
+            let newState = delayedState.withDelay(newDelay)
+            
+            result.append(newState)
+            previousTime = delayedState.delay
+        }
+        
+        return result
+    }
+}
+
+private extension DelayedState {
+    func withDelay(_ newValue: Double) -> DelayedState<State> {
+        DelayedState(state: state, delay: newValue)
     }
 }
