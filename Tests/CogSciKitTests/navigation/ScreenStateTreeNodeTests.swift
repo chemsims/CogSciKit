@@ -270,6 +270,42 @@ class ScreenStateTreeNodeTests: XCTestCase {
         XCTAssertEqual(tester.value, 1)
         XCTAssertFalse(navModel.hasPrevious)
     }
+    
+    func testRepeatingNodesDoesntAddDuplicateStatesWhenGoingBackAndThenForwards() {
+        let repeatingNode: ScreenStateTreeNode<TesterState> = RepeatingScreenStateNode(
+            getState: { IncrementingState(shouldUnapply: true, shouldReapply: false) },
+            shouldRepeat: { $0.value < 3 }
+        )
+        let endState = IncrementingState(shouldUnapply: true, shouldReapply: false)
+        
+        let rootNode = repeatingNode.andThen(endState).root
+        
+        let tester = TesterClass()
+        let navModel = NavigationModel(model: tester, rootNode: rootNode)
+        
+        XCTAssertEqual(tester.value, 1)
+        
+        // Go next until the last state
+        navModel.next()
+        navModel.next()
+        navModel.next()
+        XCTAssertEqual(tester.value, 4)
+        XCTAssertFalse(navModel.hasNext)
+        
+        // Go back to the start again
+        navModel.back()
+        navModel.back()
+        navModel.back()
+        XCTAssertEqual(tester.value, 1)
+        XCTAssertFalse(navModel.hasPrevious)
+        
+        // Now, go forward again
+        navModel.next()
+        navModel.next()
+        navModel.next()
+        XCTAssertEqual(tester.value, 4)
+        XCTAssertFalse(navModel.hasNext)
+    }
 }
 
 private class TesterClass { var value = 0 }

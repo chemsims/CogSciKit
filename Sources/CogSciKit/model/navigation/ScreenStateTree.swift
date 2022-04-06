@@ -34,19 +34,26 @@ public class ScreenStateTreeNode<State: ScreenState> {
 }
 
 /// Repeats the given state as long as `shouldRepeat` returns true, adding
-/// new states to the tree hierarchy.
+/// new states to the tree hierarchy. Note, this node always applies the state at least once,
+/// regardless of the result of `shouldRepeat`.
 ///
 /// Using this node differs to calling the `loop` method, in that new states are
 /// kept in the tree hierarchy, so they are called when going back. On the other hand,
 /// the `loop` method does not add the repeated nodes to the tree hierarchy,
 /// so they are not called when going back.
 public class RepeatingScreenStateNode<State : ScreenState>: ScreenStateTreeNode<State> {
-    public init(getState: @escaping () -> State, shouldRepeat: @escaping (State.Model) -> Bool) {
+    public convenience init(getState: @escaping () -> State, shouldRepeat: @escaping (State.Model) -> Bool) {
+        self.init(isStartOfRepeatingChain: true, getState: getState, shouldRepeat: shouldRepeat)
+    }
+    
+    private init(isStartOfRepeatingChain: Bool, getState: @escaping () -> State, shouldRepeat: @escaping (State.Model) -> Bool) {
+        self.isStartOfRepeatingChain = isStartOfRepeatingChain
         self.getState = getState
         self.shouldRepeat = shouldRepeat
         super.init(state: getState())
     }
     
+    private let isStartOfRepeatingChain: Bool
     private let getState: () -> State
     private let shouldRepeat: (State.Model) -> Bool
     
@@ -57,8 +64,24 @@ public class RepeatingScreenStateNode<State : ScreenState>: ScreenStateTreeNode<
         return super.next(model: model)
     }
     
+    override public func prev(model: State.Model) -> ScreenStateTreeNode<State>? {
+        guard let staticPrev = staticPrev else {
+            return nil
+        }
+        
+        // When we go back, we want to remove the extra nodes from the chain, as
+        // they may be re-added when going forward again. Note that the condition
+        // may change the next time we go forward, so we may repeat the node
+        // a different number of times.
+        if !isStartOfRepeatingChain, let staticNext = staticNext {
+            staticPrev.attach(to: staticNext)
+        }
+        
+        return staticPrev
+    }
+    
     private func insertAnotherRepeatingNode() {
-        let nextNode = RepeatingScreenStateNode(getState: getState, shouldRepeat: shouldRepeat)
+        let nextNode = RepeatingScreenStateNode(isStartOfRepeatingChain: false, getState: getState, shouldRepeat: shouldRepeat)
         if let staticNext = staticNext {
             nextNode.attach(to: staticNext)
         }
