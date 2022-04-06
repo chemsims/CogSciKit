@@ -205,6 +205,71 @@ class ScreenStateTreeNodeTests: XCTestCase {
         
         XCTAssertFalse(navModel.hasPrevious)
     }
+    
+    func testRepeatingNodeRepeatsTheProvidedState() {
+        let node = RepeatingScreenStateNode(
+            getState: { IncrementingState(shouldUnapply: true, shouldReapply: false) },
+            shouldRepeat: { $0.value < 3 }
+        )
+        
+        let tester = TesterClass()
+        let navModel = NavigationModel(model: tester, rootNode: node)
+        
+        XCTAssertEqual(tester.value, 1)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 2)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 3)
+        XCTAssertFalse(navModel.hasNext)
+        
+        navModel.back()
+        XCTAssertEqual(tester.value, 2)
+        
+        navModel.back()
+        XCTAssertEqual(tester.value, 1)
+        XCTAssertFalse(navModel.hasPrevious)
+    }
+    
+    func testRepeatingNodeBetweenTwoRegularNodes() {
+        let repeatingState: ScreenStateTreeNode<TesterState> = RepeatingScreenStateNode(
+            getState: { IncrementingState(shouldUnapply: true, shouldReapply: false) },
+            shouldRepeat: { $0.value < 3 }
+        )
+        let firstState: ScreenStateTreeNode<TesterState> = ScreenStateTreeNode(state: SetValue(value: 1))
+        let lastState: ScreenStateTreeNode<TesterState> = ScreenStateTreeNode(state: SetValue(value: 10))
+        
+        let rootNode = firstState.andThen(repeatingState).andThen(lastState).root
+        
+        let tester = TesterClass()
+        let navModel = NavigationModel(model: tester, rootNode: rootNode)
+        
+        XCTAssertEqual(tester.value, 1)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 2)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 3)
+        
+        navModel.next()
+        XCTAssertEqual(tester.value, 10)
+        XCTAssertFalse(navModel.hasNext)
+        
+        // We reapply the final IncrementState, which does nothing
+        navModel.back()
+        XCTAssertEqual(tester.value, 10)
+        
+        // Now the final IncrementState unapplies, reducing the value by 1
+        navModel.back()
+        XCTAssertEqual(tester.value, 9)
+        
+        // The first SetValue state reapplies, which sets the value to 1
+        navModel.back()
+        XCTAssertEqual(tester.value, 1)
+        XCTAssertFalse(navModel.hasPrevious)
+    }
 }
 
 private class TesterClass { var value = 0 }
@@ -244,7 +309,28 @@ private class SetValue: TesterState {
 }
 
 private class IncrementingState: TesterState {
+    
+    init(shouldUnapply: Bool = false, shouldReapply: Bool = true) {
+        self.shouldUnapply = shouldUnapply
+        self.shouldReapply = shouldReapply
+    }
+    
+    let shouldUnapply: Bool
+    let shouldReapply: Bool
+    
     override func apply(on model: TesterClass) {
         model.value += 1
+    }
+    
+    override func reapply(on model: TesterClass) {
+        if shouldReapply {
+            apply(on: model)
+        }
+    }
+    
+    override func unapply(on model: TesterClass) {
+        if shouldUnapply {
+            model.value -= 1
+        }
     }
 }

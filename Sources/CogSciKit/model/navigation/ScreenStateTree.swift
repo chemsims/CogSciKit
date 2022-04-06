@@ -33,6 +33,39 @@ public class ScreenStateTreeNode<State: ScreenState> {
     }
 }
 
+/// Repeats the given state as long as `shouldRepeat` returns true, adding
+/// new states to the tree hierarchy.
+///
+/// Using this node differs to calling the `loop` method, in that new states are
+/// kept in the tree hierarchy, so they are called when going back. On the other hand,
+/// the `loop` method does not add the repeated nodes to the tree hierarchy,
+/// so they are not called when going back.
+public class RepeatingScreenStateNode<State : ScreenState>: ScreenStateTreeNode<State> {
+    public init(getState: @escaping () -> State, shouldRepeat: @escaping (State.Model) -> Bool) {
+        self.getState = getState
+        self.shouldRepeat = shouldRepeat
+        super.init(state: getState())
+    }
+    
+    private let getState: () -> State
+    private let shouldRepeat: (State.Model) -> Bool
+    
+    override public func next(model: State.Model) -> ScreenStateTreeNode<State>? {
+        if shouldRepeat(model) {
+            insertAnotherRepeatingNode()
+        }
+        return super.next(model: model)
+    }
+    
+    private func insertAnotherRepeatingNode() {
+        let nextNode = RepeatingScreenStateNode(getState: getState, shouldRepeat: shouldRepeat)
+        if let staticNext = staticNext {
+            nextNode.attach(to: staticNext)
+        }
+        self.attach(to: nextNode)
+    }
+}
+
 class ConditionalScreenStateNode<State: ScreenState>: ScreenStateTreeNode<State> {
     init(state: State, applyAlternativeNode: @escaping (State.Model) -> Bool) {
         self.applyAlternativeNode = applyAlternativeNode
