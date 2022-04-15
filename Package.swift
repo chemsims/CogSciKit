@@ -24,6 +24,10 @@ let package = Package(
             dependencies: []),
         .testTarget(
             name: "CogSciKitTests",
-            dependencies: ["CogSciKit"]),
+            dependencies: ["CogSciKit"],
+            resources: [
+                .copy("Resources/quiz-parsing-test-cases"),
+            ]
+        )
     ]
 )

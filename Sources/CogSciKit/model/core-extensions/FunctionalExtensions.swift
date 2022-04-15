@@ -34,3 +34,9 @@ extension Array where Element: Collection {
         }
     }
 }
+
+extension Array where Self.Element: Numeric {
+    public func sum() -> Self.Element {
+        self.reduce(Self.Element.zero) { $0 + $1 }
+    }
+}
