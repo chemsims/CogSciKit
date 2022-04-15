@@ -4,10 +4,15 @@
 
 import SwiftUI
 
-struct QuizLayoutSettings {
+public struct QuizLayoutSettings {
     let geometry: GeometryProxy
     let horizontalSizeClass: UserInterfaceSizeClass?
     let verticalSizeClass: UserInterfaceSizeClass?
+    
+    public static func progressBarHeight(geometry: GeometryProxy) -> CGFloat {
+        let layout = QuizLayoutSettings(geometry: geometry, horizontalSizeClass: nil, verticalSizeClass: nil)
+        return layout.progressHeight + (2 * layout.progressBarPadding)
+    }
 
     var width: CGFloat {
         geometry.size.width
