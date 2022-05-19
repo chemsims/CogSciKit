@@ -29,7 +29,7 @@ public enum QuizDifficulty: Int, CaseIterable, Comparable, Codable {
     }
 
     public static func from(string: String) -> QuizDifficulty? {
-        switch string {
+        switch string.lowercased() {
         case "easy": return .easy
         case "medium": return .medium
         case "hard": return .hard
