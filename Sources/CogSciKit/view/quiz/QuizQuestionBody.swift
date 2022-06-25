@@ -97,6 +97,7 @@ private struct QuizAnswerOption<QP: QuizPersistence, Analytics: AppAnalytics>: V
                     line: model.optionText(option),
                     fontSize: settings.answerFontSize
                 )
+                .multilineTextAlignment(.center)
                 .foregroundColor(.black)
                 .padding()
                 .minimumScaleFactor(0.5)
