@@ -60,7 +60,7 @@ private struct SpeechBubbleWithSettings: View {
                 alignment: .leading
             )
         }
-        .minimumScaleFactor(0.6)
+        .minimumScaleFactor(0.3)
     }
 }
 
